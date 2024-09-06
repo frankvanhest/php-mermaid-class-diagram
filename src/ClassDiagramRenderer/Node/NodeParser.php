@@ -104,11 +104,13 @@ class NodeParser
      */
     private function createClassDiagramNodeFromClassLike(ClassLike $classLike): ClassDiagramNode
     {
+        $namespace = str_replace('\\' . $classLike->name->name, '', $classLike->namespacedName->toString());
+
         return match (true) {
             $classLike instanceof Stmt\Class_ => $classLike->isAbstract()
-                ? new AbstractClass_((string)$classLike->name->name)
-                : new Class_((string)$classLike->name->name),
-            $classLike instanceof Stmt\Interface_ => new Interface_((string)$classLike->name->name),
+                ? new AbstractClass_((string)$classLike->name->name, $namespace)
+                : new Class_((string)$classLike->name->name, $namespace),
+            $classLike instanceof Stmt\Interface_ => new Interface_((string)$classLike->name->name, $namespace),
             default => throw new Exception('Unexpected match value')
         };
     }

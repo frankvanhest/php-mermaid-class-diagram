@@ -16,7 +16,7 @@ abstract class Node
     protected Nodes $properties;
     protected Nodes $depends;
 
-    public function __construct(protected string $name)
+    public function __construct(protected string $name, protected string $namespace = '')
     {
         $this->extends    = Nodes::empty();
         $this->implements = Nodes::empty();
@@ -51,6 +51,16 @@ abstract class Node
         return $this->name;
     }
 
+    public function nodeNamespace(): string
+    {
+        return $this->namespace;
+    }
+
+    public function nodeFqn(): string
+    {
+        return $this->namespace . '\\' . $this->name;
+    }
+
     /**
      * @return Relationship[]
      */
@@ -73,8 +83,9 @@ abstract class Node
 
     public static function sortNodes(array &$nodes): void
     {
-        usort($nodes, function (Node $a, Node $b) {
-            return strcmp($a->nodeName(), $b->nodeName());
-        });
+        uasort(
+            $nodes,
+            static fn(Node $a, Node $b) => strcmp($a->nodeFqn(), $b->nodeFqn())
+        );
     }
 }

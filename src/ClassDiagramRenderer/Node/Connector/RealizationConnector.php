@@ -12,11 +12,14 @@ class RealizationConnector extends Connector
 {
     public function connect(Nodes $nodes): void
     {
-        $node = $nodes->findByName($this->nodeName);
+        $node = $nodes->findByFqn($this->nodeFqn);
 
-        foreach ($this->toConnectNodeNames as $toConnectNodeName) {
+        foreach ($this->toConnectNodeFqns as $toConnectNodeFqn) {
+            $parts = explode('\\', $toConnectNodeFqn);
+            $className = end($parts);
+            $namespace = implode('\\', array_slice($parts, 0, -1));
             $node->implements(
-                $nodes->findByName($toConnectNodeName) ?? new Interface_($toConnectNodeName)
+                $nodes->findByFqn($toConnectNodeFqn) ?? new Interface_($className, $namespace)
             );
         }
     }
@@ -29,11 +32,9 @@ class RealizationConnector extends Connector
         $implementsNodeNames = [];
 
         if (property_exists($classLike, 'implements') && $classLike->implements !== []) {
-            $implementsNodeNames = array_map(function (Node\Name $name) {
-                return (string)$name->getLast();
-            }, $classLike->implements);
+            $implementsNodeNames = array_map('strval', $classLike->implements);
         }
 
-        return new RealizationConnector($classDiagramNode->nodeName(), $implementsNodeNames);
+        return new RealizationConnector($classDiagramNode->nodeFqn(), $implementsNodeNames);
     }
 }

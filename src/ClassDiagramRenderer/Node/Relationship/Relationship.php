@@ -17,8 +17,8 @@ abstract class Relationship
     public static function sortRelationships(array &$relationships): void
     {
         usort($relationships, function (Relationship $a, Relationship $b) {
-            $aKey = $a->from->nodeName() . ' ' . $a->to->nodeName();
-            $bKey = $b->from->nodeName() . ' ' . $b->to->nodeName();
+            $aKey = $a->from->nodeFqn() . ' ' . $a->to->nodeFqn();
+            $bKey = $b->from->nodeFqn() . ' ' . $b->to->nodeFqn();
             return strcmp($aKey, $bKey);
         });
     }

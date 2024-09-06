@@ -7,6 +7,6 @@ class Composition extends Relationship
 {
     public function render(): string
     {
-        return sprintf(self::FORMAT, $this->from->nodeName(), '*--', $this->to->nodeName(), 'composition');
+        return sprintf(self::FORMAT, $this->from->nodeFqn(), '*--', $this->to->nodeFqn(), 'composition');
     }
 }

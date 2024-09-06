@@ -8,10 +8,10 @@ use Tasuku43\MermaidClassDiagram\ClassDiagramRenderer\Node\Nodes;
 abstract class Connector
 {
     /**
-     * @param string   $nodeName
-     * @param string[] $toConnectNodeNames
+     * @param string   $nodeFqn
+     * @param string[] $toConnectNodeFqns
      */
-    public function __construct(protected string $nodeName, protected array $toConnectNodeNames)
+    public function __construct(protected string $nodeFqn, protected array $toConnectNodeFqns)
     {
     }
 

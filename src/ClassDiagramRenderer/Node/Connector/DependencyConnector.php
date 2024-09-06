@@ -17,10 +17,13 @@ class DependencyConnector extends Connector
 {
     public function connect(Nodes $nodes): void
     {
-        $node = $nodes->findByName($this->nodeName);
+        $node = $nodes->findByFqn($this->nodeFqn);
 
-        foreach ($this->toConnectNodeNames as $toConnectNodeName) {
-            $node->depend($nodes->findByName($toConnectNodeName) ?? new Class_($toConnectNodeName));
+        foreach ($this->toConnectNodeFqns as $toConnectNodeFqn) {
+            $parts = explode('\\', $toConnectNodeFqn);
+            $className = end($parts);
+            $namespace = implode('\\', array_slice($parts, 0, -1));
+            $node->depend($nodes->findByFqn($toConnectNodeFqn) ?? new Class_($className, $namespace));
         }
     }
 
@@ -35,10 +38,9 @@ class DependencyConnector extends Connector
         // from method parameters and return types
         foreach ($classLike->getMethods() as $method) {
             foreach ($method->getParams() as $param) {
-                // If `visibirity` is not specified, flags is 0
+                // If `visibility` is not specified, flags is 0
                 if ($param->type instanceof Name && $param->flags === 0) {
-                    $parts                 = $param->type->getParts();
-                    $dependencyNodeNames[] = end($parts);
+                    $dependencyNodeNames[] = (string)$param->type;
                 }
             }
 
@@ -46,23 +48,21 @@ class DependencyConnector extends Connector
                 $parts                 = $method->returnType->getParts();
                 $returnTypeName = end($parts);
                 if ($returnTypeName !== 'self') {
-                    $dependencyNodeNames[] = $returnTypeName;
+                    $dependencyNodeNames[] = (string)$method->returnType;
                 }
             }
         }
 
-        $newStmts = $nodeFinder->findInstanceOf($classLike, Node\Expr\New_::class);
-        foreach ($newStmts as $newStmt) {
+        foreach ($nodeFinder->findInstanceOf($classLike, Node\Expr\New_::class) as $newStmt) {
             assert($newStmt instanceof Node\Expr\New_);
             if ($newStmt->class instanceof Name) {
-                $parts                 = $newStmt->class->getParts();
-                $dependencyNodeNames[] = end($parts);
+                $dependencyNodeNames[] = (string)$newStmt->class;
             }
         }
 
         // remove duplicates
         $dependencyNodeNames = array_unique($dependencyNodeNames);
 
-        return new DependencyConnector($classDiagramNode->nodeName(), $dependencyNodeNames);
+        return new DependencyConnector($classDiagramNode->nodeFqn(), $dependencyNodeNames);
     }
 }

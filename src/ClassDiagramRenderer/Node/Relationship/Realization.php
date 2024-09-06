@@ -7,6 +7,6 @@ class Realization extends Relationship
 {
     public function render(): string
     {
-        return sprintf(self::FORMAT, $this->to->nodeName(), '<|..', $this->from->nodeName(), 'realization');
+        return sprintf(self::FORMAT, $this->to->nodeFqn(), '<|..', $this->from->nodeFqn(), 'realization');
     }
 }

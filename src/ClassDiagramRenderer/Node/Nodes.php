@@ -22,13 +22,13 @@ class Nodes
 
     public function add(Node $node): self
     {
-        $this->nodes[$node->nodeName()] = $node;
+        $this->nodes[$node->nodeFqn()] = $node;
         return $this;
     }
 
-    public function findByName(string $nodeName): ?Node
+    public function findByFqn(string $nodeFqn): ?Node
     {
-        return $this->nodes[$nodeName] ?? null;
+        return $this->nodes[$nodeFqn] ?? null;
     }
 
     /**
@@ -37,5 +37,26 @@ class Nodes
     public function getAllNodes(): array
     {
         return $this->nodes;
+    }
+
+    /**
+     * @return array<string, Nodes>
+     */
+    public function allNodesSortedByNamespace(): array
+    {
+        $sortedNodes = [];
+        foreach ($this->nodes as $node) {
+            if (!isset($sortedNodes[$node->nodeNamespace()])) {
+                $sortedNodes[$node->nodeNamespace()] = new Nodes();
+            }
+            $sortedNodes[$node->nodeNamespace()]->add($node);
+        }
+
+        return $sortedNodes;
+    }
+
+    public function sort(): void
+    {
+        Node::sortNodes($this->nodes);
     }
 }

@@ -17,10 +17,13 @@ class CompositionConnector extends Connector
 {
     public function connect(Nodes $nodes): void
     {
-        $node = $nodes->findByName($this->nodeName);
+        $node = $nodes->findByFqn($this->nodeFqn);
 
-        foreach ($this->toConnectNodeNames as $toConnectNodeName) {
-            $node->composition($nodes->findByName($toConnectNodeName) ?? new Class_($toConnectNodeName));
+        foreach ($this->toConnectNodeFqns as $toConnectNodeFqn) {
+            $parts = explode('\\', $toConnectNodeFqn);
+            $className = end($parts);
+            $namespace = implode('\\', array_slice($parts, 0, -1));
+            $node->composition($nodes->findByFqn($toConnectNodeFqn) ?? new Class_($className, $namespace));
         }
     }
 
@@ -30,7 +33,7 @@ class CompositionConnector extends Connector
         ClassDiagramNode                      $classDiagramNode,
     ): self
     {
-        $propertieNodeNames = [];
+        $propertyNodeNames = [];
 
         // from constructor
         $construct = $nodeFinder->findFirst($classLike, function (Node $node) {
@@ -41,23 +44,25 @@ class CompositionConnector extends Connector
             foreach (array_filter($construct->getParams(), fn(Node\Param $param) => $param->type instanceof Name) as $param) {
                 assert($param instanceof Node\Param);
 
-                // If `visibirity` is not specified, flags is 0
+                // If `visibility` is not specified, flags is 0
                 if ($param->flags !== 0) {
-                    $propertieNodeNames = array_merge(
-                        $propertieNodeNames,
-                        [$param->type->getLast()]
-                    );
+                    $propertyNodeNames[] = (string)$param->type;
                 }
             }
         }
 
         // from properties
-        $propertieNodeNames = array_merge(array_map(function (Property $property) {
-            return $property->type->getLast();
-        }, array_filter($classLike->getProperties(),
-                fn(Property $property) => $property->type instanceof FullyQualified)
-        ), $propertieNodeNames);
+        $propertyNodeNames = array_merge(
+            array_map(
+                static fn(Property $property): string => (string)$property->type,
+                array_filter(
+                    $classLike->getProperties(),
+                    fn(Property $property) => $property->type instanceof FullyQualified,
+                ),
+            ),
+            $propertyNodeNames,
+        );
 
-        return new CompositionConnector($classDiagramNode->nodeName(), $propertieNodeNames);
+        return new CompositionConnector($classDiagramNode->nodeFqn(), $propertyNodeNames);
     }
 }

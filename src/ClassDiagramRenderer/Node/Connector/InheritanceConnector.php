@@ -13,20 +13,23 @@ class InheritanceConnector extends Connector
 {
     public function connect(Nodes $nodes): void
     {
-        $node = $nodes->findByName($this->nodeName);
+        $node = $nodes->findByFqn($this->nodeFqn);
 
-        foreach ($this->toConnectNodeNames as $toConnectNodeName) {
+        foreach ($this->toConnectNodeFqns as $toConnectNodeFqn) {
             $node->extends(
-                $nodes->findByName($toConnectNodeName) ?? $this->createDefaultExtendsNode($node, $toConnectNodeName)
+                $nodes->findByFqn($toConnectNodeFqn) ?? $this->createDefaultExtendsNode($node, $toConnectNodeFqn)
             );
         }
     }
 
     private function createDefaultExtendsNode(ClassDiagramNode $extended, string $extendsNodeName): ClassDiagramNode
     {
+        $parts = explode('\\', $extendsNodeName);
+        $className = end($parts);
+        $namespace = implode('\\', array_slice($parts, 0, -1));
         return match (true) {
-            $extended instanceof Interface_ => new Interface_($extendsNodeName),
-            default => new Class_($extendsNodeName),
+            $extended instanceof Interface_ => new Interface_($className, $namespace),
+            default => new Class_($className, $namespace),
         };
     }
 
@@ -39,12 +42,10 @@ class InheritanceConnector extends Connector
 
         if ($classLike->extends !== null) {
             $extendsNodeNames = is_array($classLike->extends)
-                ? array_map(function (Node\Name $name) {
-                    return (string)$name->getLast();
-                }, $classLike->extends)
-                : [(string)$classLike->extends->getLast()];
+                ? array_map('strval', $classLike->extends)
+                : [(string)$classLike->extends];
         }
 
-        return new InheritanceConnector($classDiagramNode->nodeName(), $extendsNodeNames);
+        return new InheritanceConnector($classDiagramNode->nodeFqn(), $extendsNodeNames);
     }
 }

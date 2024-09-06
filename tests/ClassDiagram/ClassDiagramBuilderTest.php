@@ -22,22 +22,23 @@ class ClassDiagramBuilderTest extends TestCase
     public function testBuild_forDir(): void
     {
         $expectedDiagram = new ClassDiagram();
+        $namespace = __NAMESPACE__ . '\\data';
 
-        $someClassA        = new Class_('SomeClassA');
-        $someClassB        = new Class_('SomeClassB');
-        $someClassC        = new Class_('SomeClassC');
-        $someClassD        = new Class_('SomeClassD');
-        $someClassE        = new Class_('SomeClassE');
-        $someAbstructClass = new AbstractClass_('SomeAbstractClass');
-        $someInterface     = new Interface_('SomeInterface');
+        $someClassA        = new Class_('SomeClassA', $namespace);
+        $someClassB        = new Class_('SomeClassB', $namespace);
+        $someClassC        = new Class_('SomeClassC', $namespace);
+        $someClassD        = new Class_('SomeClassD', $namespace);
+        $someClassE        = new Class_('SomeClassE', $namespace);
+        $someAbstractClass = new AbstractClass_('SomeAbstractClass', $namespace);
+        $someInterface     = new Interface_('SomeInterface', $namespace);
 
-        $someClassA->extends($someAbstructClass);
+        $someClassA->extends($someAbstractClass);
         $someClassA->composition($someClassB);
         $someClassA->composition($someClassC);
-        $someAbstructClass->implements($someInterface);
+        $someAbstractClass->implements($someInterface);
 
         $expectedDiagram
-            ->addNode($someAbstructClass)
+            ->addNode($someAbstractClass)
             ->addNode($someClassA)
             ->addNode($someClassB)
             ->addNode($someClassC)
@@ -45,8 +46,8 @@ class ClassDiagramBuilderTest extends TestCase
             ->addNode($someClassE)
             ->addNode($someInterface);
 
-        $expectedDiagram->addRelationships(new Realization($someAbstructClass, $someInterface))
-            ->addRelationships(new Inheritance($someClassA, $someAbstructClass))
+        $expectedDiagram->addRelationships(new Realization($someAbstractClass, $someInterface))
+            ->addRelationships(new Inheritance($someClassA, $someAbstractClass))
             ->addRelationships(new Composition($someClassA, $someClassB))
             ->addRelationships(new Composition($someClassA, $someClassC))
             ->addRelationships(new Dependency($someClassA, $someClassD))
@@ -65,12 +66,13 @@ class ClassDiagramBuilderTest extends TestCase
     public function testBuild_forFilePath(): void
     {
         $expectedDiagram = new ClassDiagram();
+        $namespace = __NAMESPACE__ . '\\data';
 
-        $someClass                = new Class_('SomeClassA');
-        $defaultCompositionClass1 = new Class_('SomeClassB');
-        $defaultCompositionClass2 = new Class_('SomeClassC');
-        $defaultDependencyClass = new Class_('SomeClassD');
-        $defaultExtendsClass      = new Class_('SomeAbstractClass');
+        $someClass                = new Class_('SomeClassA', $namespace);
+        $defaultCompositionClass1 = new Class_('SomeClassB', $namespace);
+        $defaultCompositionClass2 = new Class_('SomeClassC', $namespace);
+        $defaultDependencyClass = new Class_('SomeClassD', $namespace);
+        $defaultExtendsClass      = new Class_('SomeAbstractClass', $namespace);
         $someClass->extends($defaultExtendsClass);
         $someClass->composition($defaultCompositionClass1);
         $someClass->composition($defaultCompositionClass2);
